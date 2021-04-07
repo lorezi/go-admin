@@ -13,6 +13,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var SECRET_KEY string = os.Getenv("SECRET_KEY")
+
 func Register(c *fiber.Ctx) error {
 
 	// TODO Add validation
@@ -48,7 +50,6 @@ func Register(c *fiber.Ctx) error {
 
 func Login(c *fiber.Ctx) error {
 
-	SECRET_KEY := os.Getenv("SECRET_KEY")
 	data := make(map[string]string)
 
 	u := models.User{}
@@ -90,6 +91,48 @@ func Login(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	}
 
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
+
+}
+
+type Claims struct {
+	jwt.StandardClaims
+}
+
+func AuthUser(c *fiber.Ctx) error {
+	cookie := c.Cookies("token")
+
+	token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(SECRET_KEY), nil
+	})
+
+	if err != nil || !token.Valid {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated user",
+		})
+	}
+
+	claims := token.Claims.(*Claims)
+
+	u := models.User{}
+
+	database.DB.Where("id = ?", claims.Issuer).First(&u)
+
+	return c.JSON(u)
+}
+
+func Logout(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour), //1 day ,
+		HTTPOnly: true,
+	}
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
