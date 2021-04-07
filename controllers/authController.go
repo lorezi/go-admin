@@ -2,7 +2,11 @@ package controllers
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
@@ -43,6 +47,8 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
+
+	SECRET_KEY := os.Getenv("SECRET_KEY")
 	data := make(map[string]string)
 
 	u := models.User{}
@@ -56,17 +62,27 @@ func Login(c *fiber.Ctx) error {
 	if u.Id == 0 {
 		c.Status(404)
 		return c.JSON(fiber.Map{
-			"message": "User not found 😰",
+			"message": "invalid login credentials 😰",
 		})
 	}
 
 	if err := bcrypt.CompareHashAndPassword(u.Password, []byte(data["password"])); err != nil {
 		c.Status(400)
-		c.JSON(fiber.Map{
-			"message": "invalid login credentials",
+		return c.JSON(fiber.Map{
+			"message": "invalid login credentials 😰",
 		})
 	}
 
-	return c.JSON(u)
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    strconv.Itoa(int(u.Id)),
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // 1 day
+	})
+
+	token, err := claims.SignedString([]byte(SECRET_KEY))
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	return c.JSON(token)
 
 }
