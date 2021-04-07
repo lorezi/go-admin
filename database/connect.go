@@ -1,19 +1,17 @@
 package database
 
 import (
+	"os"
+
+	"github.com/subosito/gotenv"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-const (
-	dbHost = "tcp(localhost:3306)"
-	dbName = "mysql"
-	dbUser = "root"
-	dbPass = "johnwick3"
-)
-
 func Connect() {
-	dsn := dbUser + ":" + dbPass + "@" + dbHost + "/" + dbName + "?charset=utf8"
+	gotenv.Load()
+	dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("DBHOST") + "/" + os.Getenv("DBNAME") + "?charset=utf8"
 
 	_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
