@@ -7,7 +7,7 @@ import (
 )
 
 func GetPermissions(c *fiber.Ctx) error {
-	p := models.Permission{}
+	p := []models.Permission{}
 
 	database.DB.Find(&p)
 
