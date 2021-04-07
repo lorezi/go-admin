@@ -3,19 +3,26 @@ package database
 import (
 	"os"
 
+	"github.com/lorezi/go-admin/models"
 	"github.com/subosito/gotenv"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 func Connect() {
 	gotenv.Load()
 	dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("DBHOST") + "/" + os.Getenv("DBNAME") + "?charset=utf8"
 
-	_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		panic("Could not connect to the database")
 	}
+
+	DB = db
+
+	db.AutoMigrate(&models.User{})
 }
