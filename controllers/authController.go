@@ -100,22 +100,14 @@ type Claims struct {
 }
 
 func AuthUser(c *fiber.Ctx) error {
+
 	cookie := c.Cookies("token")
 
-	token, err := util.VerifyJwt(cookie)
-
-	if err != nil || !token.Valid {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated user",
-		})
-	}
-
-	claims := token.Claims.(*Claims)
+	userId, _ := util.VerifyJwt(cookie)
 
 	u := models.User{}
 
-	database.DB.Where("id = ?", claims.Issuer).First(&u)
+	database.DB.Where("id = ?", userId).First(&u)
 
 	return c.JSON(u)
 }
