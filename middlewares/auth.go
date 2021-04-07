@@ -7,7 +7,7 @@ import (
 
 func IsAuthenticated(c *fiber.Ctx) error {
 
-	cookie := c.Cookies("jwt")
+	cookie := c.Cookies("token")
 
 	if _, err := util.VerifyJwt(cookie); err != nil {
 		c.Status(fiber.StatusUnauthorized)
