@@ -33,7 +33,7 @@ func GetRole(c *fiber.Ctx) error {
 	if err != nil {
 		c.Status(404)
 		return c.JSON(fiber.Map{
-			"message": "user not found",
+			"message": "role not found",
 		})
 	}
 	r := models.Role{
@@ -50,7 +50,7 @@ func UpdateRole(c *fiber.Ctx) error {
 	if err != nil {
 		c.Status(404)
 		return c.JSON(fiber.Map{
-			"message": "user not found",
+			"message": "role not found",
 		})
 	}
 
@@ -73,11 +73,11 @@ func DeleteRole(c *fiber.Ctx) error {
 	if err != nil {
 		c.Status(404)
 		return c.JSON(fiber.Map{
-			"message": "user not found",
+			"message": "role not found",
 		})
 	}
 
-	r := models.User{
+	r := models.Role{
 		Id: uint(id),
 	}
 
