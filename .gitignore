@@ -1,2 +1,4 @@
-vendor
+/vendor
 docker-compose.yml
+.env
+go-admin
