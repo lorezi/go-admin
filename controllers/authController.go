@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
@@ -93,10 +92,6 @@ func Login(c *fiber.Ctx) error {
 		"message": "success",
 	})
 
-}
-
-type Claims struct {
-	jwt.StandardClaims
 }
 
 func AuthUser(c *fiber.Ctx) error {
