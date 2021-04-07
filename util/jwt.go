@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"os"
@@ -9,6 +9,10 @@ import (
 
 var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
+type Claims struct {
+	jwt.StandardClaims
+}
+
 func GenerateJwt(issuer string) (string, error) {
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
@@ -17,6 +21,15 @@ func GenerateJwt(issuer string) (string, error) {
 	})
 
 	token, err := claims.SignedString([]byte(SECRET_KEY))
+
+	return token, err
+}
+
+func VerifyJwt(cookie string) (*jwt.Token, error) {
+
+	token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(SECRET_KEY), nil
+	})
 
 	return token, err
 }

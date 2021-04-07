@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
-	"github.com/lorezi/go-admin/utils"
+	"github.com/lorezi/go-admin/util"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -75,7 +75,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := utils.GenerateJwt(strconv.Itoa(int(u.Id)))
+	token, err := util.GenerateJwt(strconv.Itoa(int(u.Id)))
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
@@ -102,9 +102,7 @@ type Claims struct {
 func AuthUser(c *fiber.Ctx) error {
 	cookie := c.Cookies("token")
 
-	token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte(SECRET_KEY), nil
-	})
+	token, err := util.VerifyJwt(cookie)
 
 	if err != nil || !token.Valid {
 		c.Status(fiber.StatusUnauthorized)
