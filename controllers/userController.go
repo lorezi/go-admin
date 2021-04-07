@@ -11,7 +11,7 @@ import (
 func Users(c *fiber.Ctx) error {
 	su := []models.User{}
 
-	database.DB.Find(&su)
+	database.DB.Preload("Role").Find(&su)
 
 	return c.JSON(su)
 }
@@ -42,7 +42,7 @@ func GetUser(c *fiber.Ctx) error {
 		Id: uint(id),
 	}
 
-	database.DB.Find(&u)
+	database.DB.Preload("Role").Find(&u)
 
 	return c.JSON(u)
 }
