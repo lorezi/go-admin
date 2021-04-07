@@ -1,10 +1,11 @@
 package controllers
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func Users(c *fiber.Ctx) error {
@@ -22,11 +23,26 @@ func CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	// default password for created users
-	p, _ := bcrypt.GenerateFromPassword([]byte("123456"), 14)
-	u.Password = p
+	u.SetPassword("12345")
 
 	database.DB.Create(&u)
+
+	return c.JSON(u)
+}
+
+func GetUser(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		c.Status(404)
+		return c.JSON(fiber.Map{
+			"message": "user not found",
+		})
+	}
+	u := models.User{
+		Id: uint(id),
+	}
+
+	database.DB.Find(&u)
 
 	return c.JSON(u)
 }
