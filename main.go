@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
+	"github.com/lorezi/go-admin/routes"
 )
 
 func main() {
@@ -11,9 +12,7 @@ func main() {
 
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World 💧")
-	})
+	routes.Setup(app)
 
 	app.Listen(":8080")
 }
