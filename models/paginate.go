@@ -7,22 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-func Paginate(db *gorm.DB, p int, l int) fiber.Map {
-	var total int64
+func Paginate(db *gorm.DB, md CountPaginate, p int, l int) fiber.Map {
 
 	o := (p - 1) * l
-	sp := []Product{}
 
-	db.Offset(o).Limit(l).Find(&sp)
-
-	db.Model(&Product{}).Count(&total)
-
+	data := md.Paginate(db, l, o)
+	total := md.Count(db)
 	return fiber.Map{
 		"meta": fiber.Map{
 			"total":     total,
 			"page":      p,
 			"last_page": math.Ceil(float64(total) / float64(l)),
 		},
-		"data": sp,
+		"data": data,
 	}
 }

@@ -13,7 +13,7 @@ func GetProducts(c *fiber.Ctx) error {
 	p, _ := strconv.Atoi(c.Query("page", "1"))
 	l, _ := strconv.Atoi(c.Query("limit", "5"))
 
-	return c.JSON(models.Paginate(database.DB, p, l))
+	return c.JSON(models.Paginate(database.DB, &models.Product{}, p, l))
 }
 
 func CreateProduct(c *fiber.Ctx) error {
