@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -38,9 +37,7 @@ func Register(c *fiber.Ctx) error {
 	}
 	u.SetPassword(data["password"])
 
-	tx := database.DB.Create(&u)
-
-	fmt.Print(tx)
+	database.DB.Create(&u)
 
 	return c.JSON(u)
 }
@@ -116,5 +113,53 @@ func Logout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "success",
 	})
+
+}
+
+// User bioprofile
+func UpdateInfo(c *fiber.Ctx) error {
+	data := make(map[string]string)
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	cookie := c.Cookies("token")
+
+	Id, _ := util.VerifyJwt(cookie)
+
+	u := models.User{}
+
+	database.DB.Model(&u).Where("id = ?", Id).Updates(data)
+
+	return c.JSON(u)
+
+}
+
+func UpdatePassword(c *fiber.Ctx) error {
+	data := make(map[string]string)
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	if data["password"] != data["password_confirm"] {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "passwords do not match",
+		})
+	}
+
+	cookie := c.Cookies("token")
+
+	Id, _ := util.VerifyJwt(cookie)
+
+	u := models.User{}
+
+	u.SetPassword(data["password"])
+
+	database.DB.Model(&u).Where("id = ?", Id).Updates(u)
+
+	return c.JSON(u)
 
 }
