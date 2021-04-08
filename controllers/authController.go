@@ -128,9 +128,15 @@ func UpdateInfo(c *fiber.Ctx) error {
 
 	Id, _ := util.VerifyJwt(cookie)
 
-	u := models.User{}
+	userId, _ := strconv.Atoi(Id)
+	u := models.User{
+		Id:        uint(userId),
+		FirstName: data["first_name"],
+		LastName:  data["last_name"],
+		Email:     data["email"],
+	}
 
-	database.DB.Model(&u).Where("id = ?", Id).Updates(data)
+	database.DB.Model(&u).Updates(u)
 
 	return c.JSON(u)
 
@@ -153,12 +159,24 @@ func UpdatePassword(c *fiber.Ctx) error {
 	cookie := c.Cookies("token")
 
 	Id, _ := util.VerifyJwt(cookie)
+	userId, _ := strconv.Atoi(Id)
 
-	u := models.User{}
+	u := &models.User{
+		Id: uint(userId),
+	}
 
 	u.SetPassword(data["password"])
 
-	database.DB.Model(&u).Where("id = ?", Id).Updates(u)
+	database.DB.Model(&u).Updates(u)
+
+	// successful update remove cookies
+	rmCookie := fiber.Cookie{
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour), //1 day ,
+		HTTPOnly: true,
+	}
+	c.Cookie(&rmCookie)
 
 	return c.JSON(u)
 

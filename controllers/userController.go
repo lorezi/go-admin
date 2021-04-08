@@ -32,7 +32,7 @@ func Users(c *fiber.Ctx) error {
 }
 
 func CreateUser(c *fiber.Ctx) error {
-	u := models.User{}
+	u := &models.User{}
 
 	if err := c.BodyParser(&u); err != nil {
 		return err
@@ -40,9 +40,9 @@ func CreateUser(c *fiber.Ctx) error {
 
 	u.SetPassword("12345")
 	//
-	// u.RoleId = 1
+	u.RoleId = 1
 
-	database.DB.Create(&u)
+	database.DB.Create(u)
 
 	return c.JSON(u)
 }
