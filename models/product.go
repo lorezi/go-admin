@@ -17,7 +17,7 @@ func (p *Product) Count(db *gorm.DB) int64 {
 }
 
 func (p *Product) Paginate(db *gorm.DB, limit int, offset int) interface{} {
-	products := []Product{}
-	db.Offset(offset).Limit(limit).Find(&products)
-	return products
+	sp := []Product{}
+	db.Offset(offset).Limit(limit).Find(&sp)
+	return sp
 }
