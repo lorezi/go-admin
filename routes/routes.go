@@ -48,4 +48,6 @@ func Setup(app *fiber.App) {
 	app.Patch("/api/orders/:id", controllers.UpdateOrder)
 	app.Delete("/api/orders/:id", controllers.DeleteOrder)
 
+	app.Post("/api/export", controllers.Export)
+
 }

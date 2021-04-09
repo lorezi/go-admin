@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/csv"
+	"os"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -85,4 +87,68 @@ func DeleteOrder(c *fiber.Ctx) error {
 
 	return nil
 
+}
+
+func Export(c *fiber.Ctx) error {
+	filePath := "./csv/orders.csv"
+	if err := CreateFile(filePath); err != nil {
+		return err
+	}
+
+	return c.Download(filePath)
+}
+
+func CreateFile(filePath string) error {
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	defer w.Flush()
+
+	so := []models.Order{}
+	database.DB.Preload("OrderItems").Find(&so)
+
+	w.Write([]string{
+		"ID", "Name", "Email", "Product Title", "Price", "Quantity",
+	})
+
+	for _, v := range so {
+		d := []string{
+			strconv.Itoa(int(v.Id)),
+			v.FirstName + " " + v.LastName,
+			v.Email,
+			"",
+			"",
+			"",
+		}
+
+		if err := w.Write(d); err != nil {
+			return err
+		}
+
+		for _, oi := range v.OrderItems {
+			// float to string conversion
+			p := strconv.FormatFloat(oi.Price, 'f', 2, 64)
+
+			d := []string{
+				"",
+				"",
+				"",
+				oi.ProductTitle,
+				p,
+				strconv.Itoa(int(oi.Quantity)),
+			}
+
+			if err := w.Write(d); err != nil {
+				return err
+			}
+
+		}
+
+	}
+
+	return nil
 }
