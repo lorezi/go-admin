@@ -42,4 +42,16 @@ func Setup(app *fiber.App) {
 
 	app.Static("/api/uploads", "./uploads")
 
+	app.Get("/api/orders", controllers.GetOrders)
+	app.Post("/api/orders", controllers.CreateOrder)
+	app.Get("/api/orders/:id", controllers.GetOrder)
+	app.Patch("/api/orders/:id", controllers.UpdateOrder)
+	app.Delete("/api/orders/:id", controllers.DeleteOrder)
+
+	app.Get("/api/items", controllers.GetItems)
+	app.Post("/api/items", controllers.CreateItem)
+	app.Get("/api/items/:id", controllers.GetItem)
+	app.Patch("/api/items/:id", controllers.UpdateItem)
+	app.Delete("/api/items/:id", controllers.DeleteItem)
+
 }
