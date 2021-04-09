@@ -152,3 +152,26 @@ func CreateFile(filePath string) error {
 
 	return nil
 }
+
+// SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') as date, SUM(oi.price * oi.quantity) as sum
+// FROM orders o
+// JOIN order_items oi on oi.id = oi.order_id
+// GROUP BY date
+
+type Sales struct {
+	Date string `json:"date"`
+	Sum  string `json:"sum"`
+}
+
+func Chart(c *fiber.Ctx) error {
+	ss := []Sales{}
+	database.DB.Raw(
+		`SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') as date, SUM(oi.price * oi.quantity) as sum
+		FROM orders o
+		JOIN order_items oi on oi.id = oi.order_id
+		GROUP BY date
+		`).Scan(&ss)
+
+	return c.JSON(ss)
+
+}

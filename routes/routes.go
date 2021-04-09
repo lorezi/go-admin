@@ -50,4 +50,6 @@ func Setup(app *fiber.App) {
 
 	app.Post("/api/export", controllers.Export)
 
+	app.Get("/api/export", controllers.Chart)
+
 }
