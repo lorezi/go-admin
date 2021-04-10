@@ -33,7 +33,7 @@ func Register(c *fiber.Ctx) error {
 		FirstName: data["first_name"],
 		LastName:  data["last_name"],
 		Email:     data["email"],
-		RoleId:    1,
+		RoleId:    6,
 	}
 	u.SetPassword(data["password"])
 
@@ -96,7 +96,7 @@ func AuthUser(c *fiber.Ctx) error {
 
 	u := models.User{}
 
-	database.DB.Where("id = ?", userId).First(&u)
+	database.DB.Where("id = ?", userId).Preload("Role").First(&u)
 
 	return c.JSON(u)
 }

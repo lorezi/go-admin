@@ -5,10 +5,17 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
+	"github.com/lorezi/go-admin/middlewares"
 	"github.com/lorezi/go-admin/models"
 )
 
+// TODO add authorization to other routes
+
 func Users(c *fiber.Ctx) error {
+
+	if err := middlewares.IsAuthorized(c, "users"); err != nil {
+		return err
+	}
 
 	p, _ := strconv.Atoi(c.Query("page", "1"))
 	l, _ := strconv.Atoi(c.Query("limit", "5"))
@@ -17,6 +24,10 @@ func Users(c *fiber.Ctx) error {
 }
 
 func CreateUser(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorized(c, "users"); err != nil {
+		return err
+	}
+
 	u := &models.User{}
 
 	if err := c.BodyParser(&u); err != nil {
@@ -25,7 +36,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	u.SetPassword("12345")
 	//
-	u.RoleId = 1
+	// u.RoleId = 1
 
 	database.DB.Create(u)
 
@@ -33,6 +44,10 @@ func CreateUser(c *fiber.Ctx) error {
 }
 
 func GetUser(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorized(c, "users"); err != nil {
+		return err
+	}
+
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		c.Status(404)
@@ -50,6 +65,10 @@ func GetUser(c *fiber.Ctx) error {
 }
 
 func UpdateUser(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorized(c, "users"); err != nil {
+		return err
+	}
+
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		c.Status(404)
@@ -73,6 +92,10 @@ func UpdateUser(c *fiber.Ctx) error {
 }
 
 func DeleteUser(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorized(c, "users"); err != nil {
+		return err
+	}
+
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		c.Status(404)
