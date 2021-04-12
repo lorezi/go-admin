@@ -34,6 +34,6 @@ func (u *User) Count(db *gorm.DB) int64 {
 
 func (u *User) Paginate(db *gorm.DB, limit int, offset int) interface{} {
 	su := []User{}
-	db.Offset(offset).Limit(limit).Find(&su)
+	db.Preload("Role").Offset(offset).Limit(limit).Find(&su)
 	return su
 }
