@@ -18,7 +18,7 @@ func Users(c *fiber.Ctx) error {
 	}
 
 	p, _ := strconv.Atoi(c.Query("page", "1"))
-	l, _ := strconv.Atoi(c.Query("limit", "5"))
+	l, _ := strconv.Atoi(c.Query("limit", "10"))
 
 	return c.JSON(models.Paginate(database.DB, &models.User{}, p, l))
 }
