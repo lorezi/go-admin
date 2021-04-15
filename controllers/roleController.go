@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
+	"gorm.io/gorm/clause"
 )
 
 type RoleCreateDTO struct {
@@ -117,7 +118,7 @@ func DeleteRole(c *fiber.Ctx) error {
 		Id: uint(id),
 	}
 
-	database.DB.Delete(&r)
+	database.DB.Select(clause.Associations).Delete(&r)
 
 	return nil
 

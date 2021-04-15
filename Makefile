@@ -45,6 +45,16 @@ ifndef ENV
 endif
 
 
+.PHONY: db-up
+## db-up: start mysql and phpadmin
+db-up:
+	docker container start mysql phpmyadmin 
+
+.PHONY: db-down
+## db-down: stop mysql and phpadmin
+db-down:
+	docker container stop mysql phpmyadmin 
+
 .PHONY: docker-build
 ## docker-build: builds the boolang docker image to registry
 docker-build: build
