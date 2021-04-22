@@ -3,6 +3,7 @@ package controllers
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,53 +16,80 @@ var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
 func Register(c *fiber.Ctx) error {
 
-	// TODO Add validation
-	var data map[string]string
+	nu := new(models.User)
 
-	if err := c.BodyParser(&data); err != nil {
-		return err
+	if err := c.BodyParser(&nu); err != nil {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
-	if data["password"] != data["password_confirm"] {
+	if nu.Password != nu.PasswordConfirm {
 		c.Status(400)
 		return c.JSON(fiber.Map{
 			"message": "passwords do not match",
 		})
 	}
 
-	u := models.User{
-		FirstName: data["first_name"],
-		LastName:  data["last_name"],
-		Email:     data["email"],
+	u := &models.User{
+		FirstName: nu.FirstName,
+		LastName:  nu.LastName,
+		Email:     nu.Email,
 		RoleId:    6,
 	}
-	u.SetPassword(data["password"])
 
-	database.DB.Create(&u)
+	u.SetPassword(nu.Password)
 
-	return c.JSON(u)
+	if err := util.ValidateStruct(*u); err != nil {
+		c.Status(400)
+		return c.JSON(err)
+	}
+
+	if err := database.DB.Create(u).Error; err != nil {
+		c.Status(500)
+		sm := strings.Split(err.Error(), ":")
+		m := strings.TrimSpace(sm[1])
+
+		return c.JSON(fiber.Map{
+			"message": m,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "user account created",
+	})
 }
 
 func Login(c *fiber.Ctx) error {
 
-	data := make(map[string]string)
+	lu := new(models.Login)
 
-	u := models.User{}
-
-	if err := c.BodyParser(&data); err != nil {
-		return err
+	if err := c.BodyParser(&lu); err != nil {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
-	database.DB.Where("email = ?", data["email"]).First(&u)
+	if err := util.ValidateStruct(*lu); err != nil {
+		c.Status(400)
+		return c.JSON(err)
+	}
+
+	u := &models.User{}
+
+	database.DB.Where("email = ?", lu.Email).First(&u)
 
 	if u.Id == 0 {
 		c.Status(404)
 		return c.JSON(fiber.Map{
-			"message": "invalid login credentials 😰",
+			"message": "invalid login credentials email 😰",
 		})
 	}
 
-	if err := u.ComparePassword(data["password"]); err != nil {
+	if err := u.ComparePassword(lu.Password); err != nil {
+
 		c.Status(400)
 		return c.JSON(fiber.Map{
 			"message": "invalid login credentials 😰",
@@ -98,7 +126,15 @@ func AuthUser(c *fiber.Ctx) error {
 
 	database.DB.Where("id = ?", userId).Preload("Role").First(&u)
 
-	return c.JSON(u)
+	r := &models.UserResponse{
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Email:     u.Email,
+		RoleId:    u.Role.Id,
+		RoleName:  u.Role.Name,
+	}
+
+	return c.JSON(r)
 }
 
 func Logout(c *fiber.Ctx) error {

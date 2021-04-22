@@ -21,11 +21,11 @@ func Connect() {
 	})
 
 	if err != nil {
-		panic("Could not connect to the database")
+		panic("Could not connect to the database 😵😰")
 	}
 
 	DB = db
 
-	db.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Product{}, &models.Order{}, &models.OrderItem{})
+	db.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Product{}, &models.Order{}, &models.OrderItem{}, &models.PasswordReset{})
 
 }

@@ -6,23 +6,40 @@ import (
 )
 
 type User struct {
-	Id        uint   `json:"id"`
+	Id        uint   `json:"id,omitempty"`
+	FirstName string `json:"first_name" validate:"required,min=2,max=25"`
+	LastName  string `json:"last_name" validate:"required,min=2,max=25"`
+	Email     string `json:"email" gorm:"unique" validate:"required,email"`
+	// Password        []byte `json:"password"`
+	// PasswordConfirm []byte `json:"password_confirm" gorm:"-"`
+
+	Password        string `json:"password" validate:"required"`
+	PasswordConfirm string `json:"password_confirm" gorm:"-"`
+	RoleId          uint   `json:"role_id" validate:"required"`
+	Role            Role   `json:"role" gorm:"foreignKey:RoleId"`
+}
+
+type UserResponse struct {
+	Id        uint   `json:"id,omitempty"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	Email     string `json:"email" gorm:"unique"`
-	Password  []byte `json:"-"`
+	Email     string `json:"email"`
 	RoleId    uint   `json:"role_id"`
-	Role      Role   `json:"role" gorm:"foreignKey:RoleId"`
+	RoleName  string `json:"role_name"`
+}
+
+type Login struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (u *User) SetPassword(p string) {
-	// default password for created users
 	hp, _ := bcrypt.GenerateFromPassword([]byte(p), 14)
-	u.Password = hp
+	u.Password = string(hp)
 }
 
 func (u *User) ComparePassword(p string) error {
-	err := bcrypt.CompareHashAndPassword(u.Password, []byte(p))
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(p))
 	return err
 }
 
