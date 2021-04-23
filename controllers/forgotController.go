@@ -3,44 +3,61 @@ package controllers
 import (
 	"math/rand"
 	"net/smtp"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
+	"github.com/subosito/gotenv"
 )
 
 func Forgot(c *fiber.Ctx) error {
+	gotenv.Load()
 	u := new(models.PasswordReset)
 
 	if err := c.BodyParser(&u); err != nil {
 		return err
 	}
 
-	token := RandStringRunes(12)
+	token := randStringByte(12)
 
 	pr := &models.PasswordReset{
 		Email: u.Email,
 		Token: token,
 	}
 
+	// search for the email in the database, if the user exist
+	um := &models.User{}
+
+	database.DB.Where("email = ?", u.Email).First(um)
+
+	if um.Id == 0 {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "invalid email address 😰",
+		})
+	}
+
 	database.DB.Create(pr)
 
-	// use env variable here
-	from := "admin@example.com"
+	from := os.Getenv("EMAIL_FROM")
 
 	to := []string{
 		u.Email,
 	}
 
-	// env variable
-	url := "http://localhost:3000/reset/" + token
+	auth := smtp.PlainAuth("", os.Getenv("EMAIL_USERNAME"), os.Getenv("EMAIL_PASSWORD"), os.Getenv("EMAIL_HOST"))
 
-	// env variable
-	m := []byte("Click <a href=\"" + url + "\">here</a> to reset your password!")
+	url := os.Getenv("RESET_URL") + token
 
-	err := smtp.SendMail("0.0.0.0:1025", nil, from, to, m)
+	msg := []byte("Click <a href=\"" + url + "\">here</a> to reset your password!")
+
+	err := smtp.SendMail(os.Getenv("EMAIL_HOST")+":"+os.Getenv("EMAIL_PORT"), auth, from, to, msg)
 	if err != nil {
-		return err
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "email was not sent 😰",
+		})
 	}
 
 	return c.JSON(fiber.Map{
@@ -49,11 +66,11 @@ func Forgot(c *fiber.Ctx) error {
 
 }
 
-func RandStringRunes(n int) string {
-	lr := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, n)
+func randStringByte(n int) string {
+	lb := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, n)
 	for i := range b {
-		b[i] = lr[rand.Intn(len(lr))]
+		b[i] = lb[rand.Intn(len(lb))]
 	}
 	return string(b)
 }

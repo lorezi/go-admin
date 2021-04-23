@@ -50,7 +50,7 @@ func IsAuthorized(c *fiber.Ctx, page string) error {
 		}
 	}
 
-	c.Status(fiber.StatusUnauthorized)
+	c.Status(fiber.StatusForbidden)
 	return errors.New("unauthorized")
 
 }

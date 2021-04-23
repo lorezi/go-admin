@@ -1,7 +1,7 @@
 package models
 
 type PasswordReset struct {
-	Id    uint
-	Email string
-	Token string
+	Id    uint   `json:"-"`
+	Email string `json:"email" validate:"required,email"`
+	Token string `json:"-"`
 }
