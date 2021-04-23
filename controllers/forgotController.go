@@ -1,14 +1,17 @@
 package controllers
 
 import (
+	"fmt"
 	"math/rand"
 	"net/smtp"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/lorezi/go-admin/database"
 	"github.com/lorezi/go-admin/models"
 	"github.com/subosito/gotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Forgot(c *fiber.Ctx) error {
@@ -19,7 +22,7 @@ func Forgot(c *fiber.Ctx) error {
 		return err
 	}
 
-	token := randStringByte(12)
+	token := tokenGenerator(12)
 
 	pr := &models.PasswordReset{
 		Email: u.Email,
@@ -37,6 +40,10 @@ func Forgot(c *fiber.Ctx) error {
 			"message": "invalid email address 😰",
 		})
 	}
+
+	// token expiration time is 3hr
+	pr.ExpirationTime = time.Now().Add(time.Hour * time.Duration(3))
+	pr.CreatedAt = time.Now()
 
 	database.DB.Create(pr)
 
@@ -66,11 +73,53 @@ func Forgot(c *fiber.Ctx) error {
 
 }
 
-func randStringByte(n int) string {
-	lb := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = lb[rand.Intn(len(lb))]
+func ResetPassword(c *fiber.Ctx) error {
+
+	rp := &models.PasswordReset{}
+
+	if err := database.DB.Where("token = ?", c.Params("token")).Last(rp); err.Error != nil {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "invalid token",
+		})
 	}
-	return string(b)
+
+	if rp.Id == 0 {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "invalid token",
+		})
+	}
+
+	now, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+
+	if now.After(rp.ExpirationTime) {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "token has expired",
+		})
+	}
+
+	r := new(models.Reset)
+
+	if r.Password != r.PasswordConfirm {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "password does not match",
+		})
+	}
+
+	password, _ := bcrypt.GenerateFromPassword([]byte(r.Password), 14)
+	database.DB.Model(&models.User{}).Where("email = ?", rp.Email).Update("password", password)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
+
+}
+
+func tokenGenerator(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
